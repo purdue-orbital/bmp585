@@ -45,11 +45,7 @@ impl PowerMode {
 pub fn get_ids(bus: &mut impl I2c) -> u8 {
 	let mut buf = [0_u8; 1];
 
-	let res = bus.write_read(ADDR, &[0x01], &mut buf); // check if issues
-
-	if res.is_err() {
-		log::error!("{:?}", res);
-	}
+	let res = bus.write_read(ADDR, &[0x01], &mut buf).unwrap(); // check if issues
 
 	buf[0]
 }
@@ -57,11 +53,8 @@ pub fn get_ids(bus: &mut impl I2c) -> u8 {
 pub fn get_status(bus: &mut impl I2c) -> u8 {
 	let mut buf = [0_u8; 1];
 
-	let res = bus.write_read(ADDR, &[0x28], &mut buf); // check if issues
+	let res = bus.write_read(ADDR, &[0x28], &mut buf).unwrap(); // check if issues
 
-	if res.is_err() {
-		log::error!("{:?}", res);
-	}
 
 	let mut nvm_error = buf[0] << 5; // eliminate left digits
 	nvm_error = nvm_error >> 7; // eliminate right digits
@@ -75,10 +68,7 @@ pub fn get_status(bus: &mut impl I2c) -> u8 {
 pub fn get_pressure(bus: &mut impl I2c) -> f32 { //issue getting pressure here, refer to 4.4.1 config (pg20) write 1 to 0x36
 	let mut buf = [0_u8; 3];
 
-	let res = bus.write_read(ADDR, &[0x20], &mut buf); // get pressure
-	if res.is_err() { //error handling
-		log::error!("{:?}", res);
-	}
+	let res = bus.write_read(ADDR, &[0x20], &mut buf).unwrap(); // get pressure
 
 	let output = u32::from_le_bytes([buf[0], buf[1], buf[2], 0]);
 	// let div_thingy: f32 = (1_u32 << 6).into();
@@ -89,10 +79,7 @@ pub fn get_pressure(bus: &mut impl I2c) -> f32 { //issue getting pressure here, 
 pub fn get_temperature(bus: &mut impl I2c) -> f32 {
 	let mut buf = [0_u8; 3];
 
-	let res = bus.write_read(ADDR, &[0x1D], &mut buf); // get temperature
-	if res.is_err() { //error handling
-		log::error!("{:?}", res);
-	}
+	let res = bus.write_read(ADDR, &[0x1D], &mut buf).unwrap(); // get temperature
 
 	let output = u32::from_le_bytes([buf[0], buf[1], buf[2], 0]);
 
@@ -139,11 +126,7 @@ pub fn set_osr_press(bus: &mut impl I2c) { // Enable pressure reading from OSR
 pub fn get_osr_press(bus: &mut impl I2c) -> u8 {
 	let mut buf = [0_u8; 1];
 
-	let res = bus.write_read(ADDR, &[0x36], &mut buf); // check if issues
-
-	if res.is_err() {
-		log::error!("{:?}", res);
-	}
+	let res = bus.write_read(ADDR, &[0x36], &mut buf).unwrap(); // check if issues
 
 	buf[0]
 }
