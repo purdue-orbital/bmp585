@@ -43,31 +43,32 @@ impl PowerMode {
 }
 
 pub fn get_ids(bus: &mut impl I2c) -> Result<u8, u8> {
-	let mut buf = [0_u8; 1];
-  bus.write_read(ADDR, &[0x01], &mut buf);
-  // Return the first byte from the buffer
-  Ok(buf[0])
+  let mut buf = [0_u8; 1]; // Buffer to store read data
+  // Attempt to write and read using the I2C bus, propagating errors with `?`
+  match bus.write_read(ADDR, &[0x01], &mut buf) {
+    Ok(_) => Ok(buf[0]),
+    Err(_err) => Err(0),
+  }
 }
 
-pub fn get_status(bus: &mut impl I2c) -> u8 {
+
+pub fn get_status(bus: &mut impl I2c) -> Result<u8, u8> {
 	let mut buf = [0_u8; 1];
+	bus.write_read(ADDR, &[0x28], &mut buf).unwrap(); // check if issues
 
-	let res = bus.write_read(ADDR, &[0x28], &mut buf).unwrap(); // check if issues
+	let mut nvm_error = buf[0];
+  nvm_error &= 0000_0100;
+  nvm_error = nvm_error >> 1;
+	let mut nvm_rdy = buf[0];
+	nvm_rdy &= 0000_0010;
 
-
-	let mut nvm_error = buf[0] << 5; // eliminate left digits
-	nvm_error = nvm_error >> 7; // eliminate right digits
-
-	let mut nvm_rdy = buf[0] << 6; // eliminate left digits
-	nvm_rdy = nvm_rdy >> 7; // eliminate right digits
-
-	if !nvm_error == nvm_rdy {0} else {1} // return 0 if no issues, 1 if issues
+	if !nvm_error == nvm_rdy {Ok(0)} else {Err(1)} // return 0 if no issues, 1 if issues
 }
 
 pub fn get_pressure(bus: &mut impl I2c) -> f32 { //issue getting pressure here, refer to 4.4.1 config (pg20) write 1 to 0x36
 	let mut buf = [0_u8; 3];
 
-	let res = bus.write_read(ADDR, &[0x20], &mut buf).unwrap(); // get pressure
+	let _res = bus.write_read(ADDR, &[0x20], &mut buf).unwrap(); // get pressure
 
 	let output = u32::from_le_bytes([buf[0], buf[1], buf[2], 0]);
 	// let div_thingy: f32 = (1_u32 << 6).into();
@@ -78,7 +79,7 @@ pub fn get_pressure(bus: &mut impl I2c) -> f32 { //issue getting pressure here, 
 pub fn get_temperature(bus: &mut impl I2c) -> f32 {
 	let mut buf = [0_u8; 3];
 
-	let res = bus.write_read(ADDR, &[0x1D], &mut buf).unwrap(); // get temperature
+	let _res = bus.write_read(ADDR, &[0x1D], &mut buf).unwrap(); // get temperature
 
 	let output = u32::from_le_bytes([buf[0], buf[1], buf[2], 0]);
 
@@ -125,7 +126,7 @@ pub fn set_osr_press(bus: &mut impl I2c) { // Enable pressure reading from OSR
 pub fn get_osr_press(bus: &mut impl I2c) -> u8 {
 	let mut buf = [0_u8; 1];
 
-	let res = bus.write_read(ADDR, &[0x36], &mut buf).unwrap(); // check if issues
+	let _res = bus.write_read(ADDR, &[0x36], &mut buf).unwrap(); // check if issues
 
 	buf[0]
 }
