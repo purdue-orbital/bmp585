@@ -42,12 +42,11 @@ impl PowerMode {
 	pub const MASK: u8 = 0b0000_0011;
 }
 
-pub fn get_ids(bus: &mut impl I2c) -> u8 {
+pub fn get_ids(bus: &mut impl I2c) -> Result<u8, u8> {
 	let mut buf = [0_u8; 1];
-
-	let res = bus.write_read(ADDR, &[0x01], &mut buf).unwrap(); // check if issues
-
-	buf[0]
+  bus.write_read(ADDR, &[0x01], &mut buf);
+  // Return the first byte from the buffer
+  Ok(buf[0])
 }
 
 pub fn get_status(bus: &mut impl I2c) -> u8 {
